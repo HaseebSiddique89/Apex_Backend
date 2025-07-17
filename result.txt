@@ -14,3 +14,5 @@ Task Completed! Generated 3D Model URLs:
 - no_background_images: ['https://img.theapi.app/temp/017f9274-2100-46eb-92c7-835056a4c7a2.png']
 Downloading GLB file from: https://img.theapi.app/temp/929209e9-3521-4ad9-84a9-c7a090849641.glb
 ✅ GLB file saved as: trellis_model_281612ac-5043-48b2-afce-0558ab397421.glb
+
+---------------------------------------------------------------------------------------------------------------
