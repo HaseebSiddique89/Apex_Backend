@@ -8,12 +8,16 @@ from google import genai
 from google.genai import types
 from PIL import Image
 import io
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def generate_isometric_image(image_path):
     """Generate isometric view from image with proper error handling"""
    
     # Check API key
-    api_key = "AIzaSyBSFdHtnppuXaWcVCuEV4cTXl7kg5plnsI"
+    api_key = os.getenv("GEMINI_API_KEY")
+    # api_key = "AIzaSyBSFdHtnppuXaWcVCuEV4cTXl7kg5plnsI"
     if not api_key:
         print("Error: Set GEMINI_API_KEY environment variable")
         return
