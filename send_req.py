@@ -1,5 +1,9 @@
 import http.client
 import json
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 conn = http.client.HTTPSConnection("api.piapi.ai")
 payload = json.dumps({
@@ -21,7 +25,7 @@ payload = json.dumps({
    }
 })
 headers = {
-   'x-api-key': 'Enter_Your_API_KEY_Here',
+   'x-api-key': os.getenv("PIAPI_API_KEY"),
    'Content-Type': 'application/json'
 }
 conn.request("POST", "/api/v1/task", payload, headers)

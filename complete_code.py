@@ -5,6 +5,9 @@ import os
 import base64
 from PIL import Image
 from io import BytesIO
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # --- Configuration ---
 PIAPI_API_KEY = api_key = os.getenv("PIAPI_API_KEY")
