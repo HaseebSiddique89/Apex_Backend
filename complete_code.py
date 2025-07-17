@@ -7,7 +7,7 @@ from PIL import Image
 from io import BytesIO
 
 # --- Configuration ---
-PIAPI_API_KEY = "0b0c59b3043f869f267f9eae0447f5b5c2e7f18ff45e701718871b221d6b4d67"
+PIAPI_API_KEY = "Enter_Your_API_KEY_Here"
 PIAPI_BASE_URL = "https://api.piapi.ai/api/v1/task"
 
 # --- Prepare image for API ---
