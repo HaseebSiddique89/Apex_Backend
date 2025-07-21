@@ -17,7 +17,6 @@ def generate_isometric_image(image_path):
    
     # Check API key
     api_key = os.getenv("GEMINI_API_KEY")
-    # api_key = "AIzaSyBSFdHtnppuXaWcVCuEV4cTXl7kg5plnsI"
     if not api_key:
         print("Error: Set GEMINI_API_KEY environment variable")
         return
