@@ -36,7 +36,7 @@ else:
         if not mime_type:
             mime_type = "image/jpeg" # Default if guess_type fails
 
-        prompt = """You are an educational assistant for biology students.
+        prompt = """You are an educational assistant for students.
 
                     Given the image below, do the following:
                     1. Identify the object present in the image.
@@ -45,7 +45,7 @@ else:
                     4. Explain its main functions.
                     5. Provide any additional relevant information (like its role in the human body, diseases related to it, or interesting facts).
 
-                    Be detailed and educational, using clear language suitable for high school and undergraduate students."""
+                    Be detailed and educational, using clear language suitable for high school and undergraduate students. response must be stick to these 5 points mentioned above, no extra text"""
 
         contents = [
             {
