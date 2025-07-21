@@ -22,7 +22,7 @@ def generate_isometric_image(image_path):
     if not os.path.exists(image_path):
         print(f"Error: Image '{image_path}' not found")
         return
-   
+    
     try:
         # Read and encode image
         with open(image_path, "rb") as f:

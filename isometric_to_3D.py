@@ -124,10 +124,10 @@ if __name__ == "__main__":
                             if "model_file" in result_data:
                                 glb_url = result_data["model_file"]
                                 
-                                # Ensure 'models' folder exists
-                                os.makedirs("models", exist_ok=True)
+                                # Ensure '3d_models' folder exists
+                                os.makedirs("3d_models", exist_ok=True)
                                 
-                                file_name = f"models/trellis_model_{task_id}.glb"
+                                file_name = f"3d_models/trellis_model_{task_id}.glb"
                                 try:
                                     print(f"Downloading GLB file from: {glb_url}")
                                     glb_response = requests.get(glb_url, stream=True)
@@ -135,7 +135,7 @@ if __name__ == "__main__":
                                     with open(file_name, 'wb') as f:
                                         for chunk in glb_response.iter_content(chunk_size=8192):
                                             f.write(chunk)
-                                    print(f"✅ GLB file saved in 'models' folder as: {file_name}")
+                                    print(f"✅ GLB file saved in '3d_models' folder as: {file_name}")
                                 except requests.exceptions.RequestException as e:
                                     print(f"Error downloading GLB file: {e}")
                             else:
