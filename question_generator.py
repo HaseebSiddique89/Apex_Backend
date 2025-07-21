@@ -1,21 +1,18 @@
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+from transformers import pipeline
 
-# Load the question generation model
-tokenizer = AutoTokenizer.from_pretrained("iarfmoose/t5-base-question-generator")
-model = AutoModelForSeq2SeqLM.from_pretrained("iarfmoose/t5-base-question-generator")
+# Load T5-based question generation pipeline
+generator = pipeline("text2text-generation", model="iarfmoose/t5-base-question-generator")
 
-# Provide a context and an answer to base the question on
-context = "The mitochondria is the powerhouse of the cell. It generates ATP through respiration."
-answer = "mitochondria"
+# Load the content from the text file
+with open("Descriptions\\heart_description_20250721_202800.txt", "r", encoding="utf-8") as f:
+    text = f.read()
 
-# Format the input correctly
-input_text = f"context: {context} answer: {answer}"
+# Split text into manageable chunks
+chunks = text.split("\n\n")  # or use a sentence tokenizer if needed
 
-# Tokenize and generate
-input_ids = tokenizer.encode(input_text, return_tensors="pt")
-output = model.generate(input_ids, max_length=64, num_beams=4, early_stopping=True)
-
-# Decode the output
-question = tokenizer.decode(output[0], skip_special_tokens=True)
-
-print("Generated Question:", question)
+# Generate questions
+for i, chunk in enumerate(chunks):
+    if chunk.strip():
+        print(f"--- Chunk {i+1} ---")
+        result = generator(f"generate questions: {chunk}", max_length=128, do_sample=False)
+        print(result[0]['generated_text'])

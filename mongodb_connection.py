@@ -24,7 +24,7 @@ from bson.objectid import ObjectId # To work with GridFS file IDs
 
 # --- 1. MongoDB Connection Details ---
 # IMPORTANT: Replace <db_password> with your actual database user password
-uri = "mongodb+srv://haseebsiddique825:Apex%2389@mycluster.ujqwmto.mongodb.net/"
+uri = os.getenv("MONGODB_URI")
 DB_NAME = "Apex_db" # The database where GridFS will operate
 IMAGE_FILENAME = "example_image_for_mongodb.jpg" # Name for the dummy image we create
 RETRIEVED_FILENAME = "retrieved_example_image.jpg" # Name for the image we retrieve

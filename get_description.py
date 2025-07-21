@@ -43,8 +43,9 @@ else:
                     2. Describe what it is.
                     3. Explain its structure in detail.
                     4. Explain its main functions.
-                    5. Provide any additional relevant information (like its role in the human body, diseases related to it, or interesting facts).
+                    5. Provide any additional relevant information.
 
+                    Do not include any additional phrases such as "Here's a breakdown" or anything else outside of the 5 numbered responses. You may use bullets within these 5 numbered responses for better explanation.
                     Be detailed and educational, using clear language suitable for high school and undergraduate students. response must be stick to these 5 points mentioned above, no extra text"""
 
         contents = [

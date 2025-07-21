@@ -8,9 +8,6 @@ from google import genai
 from google.genai import types
 from PIL import Image
 import io
-from dotenv import load_dotenv
-
-load_dotenv()
 
 def generate_isometric_image(image_path):
     """Generate isometric view from image with proper error handling"""
