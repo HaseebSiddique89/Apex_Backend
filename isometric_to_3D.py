@@ -92,7 +92,7 @@ def get_trellis_task_status(task_id):
 
 # --- Main ---
 if __name__ == "__main__":
-    image_file_path = "D:\\Work\\GitHub\\Trellis_ImageTo3D_Setup\\isometric-house.jpg"
+    image_file_path = "D:\\Work\\GitHub\\Trellis_ImageTo3D_Setup\\isometric_0.png"
     encoded_img = prepare_image_for_api(image_file_path)
 
     if encoded_img:

@@ -46,7 +46,7 @@ def generate_isometric_image(image_path):
             types.Content(
                 role="user",
                 parts=[
-                    types.Part.from_text(text="Generate Isometric view of this Image"),
+                    types.Part.from_text(text="Generate isometric view of this Image"),
                     types.Part.from_bytes(data=image_data, mime_type=mime_type),
                 ],
             ),
