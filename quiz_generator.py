@@ -10,7 +10,7 @@ INPUT_FILE = 'D:\\Work\\GitHub\\Trellis_ImageTo3D_Setup\\Descriptions\\heart_des
 NUM_QUESTIONS = 3
 
 # Create 'Quizzes' directory if it doesn't exist
-output_dir = 'Quizzes'
+output_dir = 'quizzes'
 os.makedirs(output_dir, exist_ok=True)
 
 # Generate timestamped filenames to avoid overwriting

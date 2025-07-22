@@ -127,7 +127,7 @@ def verify_image(image_path):
         return False
 
 if __name__ == "__main__":
-    image_path = "D:\\Work\\GitHub\\Trellis_ImageTo3D_Setup\\heart.jpg"
+    image_path = "D:\\Work\\GitHub\\Trellis_ImageTo3D_Setup\\lungs.jpg"
 
     # First verify the input image
     print("Verifying input image...")
