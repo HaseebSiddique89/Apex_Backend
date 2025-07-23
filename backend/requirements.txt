@@ -1,5 +1,0 @@
-quart
-motor
-PyJWT
-passlib
-python-dotenv 
