@@ -64,10 +64,25 @@ async def upload_image():
 async def isometric_api():
     data = await request.get_json()
     image_path = data.get('image_path')
+    source_image_id = data.get('source_image_id')
     if not image_path or not os.path.exists(image_path):
         return jsonify({'error': 'Valid image_path required'}), 400
     result = await async_generate_isometric(image_path)
-    return jsonify({'result': str(result)}), 200
+    # Store isometric metadata in DB
+    db = await get_db()
+    user_id = g.current_user['user_id']
+    isometric_doc = {
+        'user_id': user_id,
+        'filename': os.path.basename(result),
+        'filepath': result,
+        'uploaded_at': datetime.utcnow(),
+        'status': 'generated',
+        'type': 'isometric',
+    }
+    if source_image_id:
+        isometric_doc['source_image_id'] = source_image_id
+    insert_result = await db.isometrics.insert_one(isometric_doc)
+    return jsonify({'result': result, 'isometric_id': str(insert_result.inserted_id)}), 200
 
 @image_bp.route('/3d', methods=['POST'])
 @login_required
@@ -75,10 +90,25 @@ async def model3d_api():
     data = await request.get_json()
     isometric_path = data.get('isometric_path')
     prompt = data.get('prompt')
+    source_isometric_id = data.get('source_isometric_id')
     if not isometric_path or not os.path.exists(isometric_path):
         return jsonify({'error': 'Valid isometric_path required'}), 400
     result = await async_generate_3d(isometric_path, prompt)
-    return jsonify({'result': result}), 200
+    # Store 3D model task metadata in DB (pending, will update on completion)
+    db = await get_db()
+    user_id = g.current_user['user_id']
+    model3d_doc = {
+        'user_id': user_id,
+        'isometric_path': isometric_path,
+        'prompt': prompt,
+        'uploaded_at': datetime.utcnow(),
+        'status': 'pending',
+        'type': '3d_model',
+    }
+    if source_isometric_id:
+        model3d_doc['source_isometric_id'] = source_isometric_id
+    insert_result = await db.models3d.insert_one(model3d_doc)
+    return jsonify({'result': result, 'model3d_id': str(insert_result.inserted_id)}), 200
 
 @image_bp.route('/3d/status', methods=['POST'])
 @login_required
@@ -131,10 +161,28 @@ async def model3d_status_api():
 async def explanation_api():
     data = await request.get_json()
     image_path = data.get('image_path')
+    source_image_id = data.get('source_image_id')
+    source_isometric_id = data.get('source_isometric_id')
     if not image_path or not os.path.exists(image_path):
         return jsonify({'error': 'Valid image_path required'}), 400
     result = await async_generate_explanation(image_path)
-    return jsonify({'result': result}), 200
+    # Store description metadata in DB
+    db = await get_db()
+    user_id = g.current_user['user_id']
+    description_doc = {
+        'user_id': user_id,
+        'filename': os.path.basename(result),
+        'filepath': result,
+        'uploaded_at': datetime.utcnow(),
+        'status': 'generated',
+        'type': 'description',
+    }
+    if source_image_id:
+        description_doc['source_image_id'] = source_image_id
+    if source_isometric_id:
+        description_doc['source_isometric_id'] = source_isometric_id
+    insert_result = await db.descriptions.insert_one(description_doc)
+    return jsonify({'result': result, 'description_id': str(insert_result.inserted_id)}), 200
 
 @image_bp.route('/quiz', methods=['POST'])
 @login_required
@@ -142,7 +190,22 @@ async def quiz_api():
     data = await request.get_json()
     description_file_path = data.get('description_file_path')
     num_questions = data.get('num_questions', 3)
+    source_description_id = data.get('source_description_id')
     if not description_file_path or not os.path.exists(description_file_path):
         return jsonify({'error': 'Valid description_file_path required'}), 400
     result = await async_generate_quiz(description_file_path, num_questions)
-    return jsonify({'result': result}), 200 
+    # Store quiz metadata in DB
+    db = await get_db()
+    user_id = g.current_user['user_id']
+    quiz_doc = {
+        'user_id': user_id,
+        'filename': os.path.basename(result),
+        'filepath': result,
+        'uploaded_at': datetime.utcnow(),
+        'status': 'generated',
+        'type': 'quiz',
+    }
+    if source_description_id:
+        quiz_doc['source_description_id'] = source_description_id
+    insert_result = await db.quizzes.insert_one(quiz_doc)
+    return jsonify({'result': result, 'quiz_id': str(insert_result.inserted_id)}), 200 
