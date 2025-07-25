@@ -164,6 +164,9 @@ From `backend/requirements.txt`:
 - Set environment variables in a `.env` file or system environment:
   - `SECRET_KEY`: Secret for JWT and password hashing
   - `MONGODB_URI`: MongoDB connection string (default: `mongodb://localhost:27017/trellis_db`)
+  - `GEMINI_API_KEY`: Gemini API Key
+  - `PIAPI_API_KEY`: PIAPI API Key
+  - `COHERE_API_KEY`: Cohere API Key
 
 ---
 
