@@ -2,4 +2,12 @@ quart
 motor
 PyJWT
 passlib
-python-dotenv 
+python-dotenv
+aiohttp
+cohere
+pymongo
+gridfs
+bson
+Pillow
+requests
+google-generativeai
