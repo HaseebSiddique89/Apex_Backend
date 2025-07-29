@@ -1,0 +1,52 @@
+[
+  {
+    "question": "Q1. What is the name of the organelle depicted in the image?",
+    "options": {
+      "a": "Nucleus",
+      "b": "Mitochondrion",
+      "c": "Ribosome",
+      "d": "Lysosome"
+    },
+    "answer": "b"
+  },
+  {
+    "question": "Q2. What is the primary function of mitochondria?",
+    "options": {
+      "a": "Protein synthesis",
+      "b": "ATP production",
+      "c": "Cell division",
+      "d": "Intracellular digestion"
+    },
+    "answer": "b"
+  },
+  {
+    "question": "Q3. Which part of the mitochondrion is responsible for housing the electron transport chain and ATP synthase?",
+    "options": {
+      "a": "Outer membrane",
+      "b": "Intermembrane space",
+      "c": "Cristae",
+      "d": "Matrix"
+    },
+    "answer": "c"
+  },
+  {
+    "question": "Q4. What is the role of mitochondria in calcium homeostasis?",
+    "options": {
+      "a": "Regulate calcium ion concentration within the cell",
+      "b": "Store excess calcium ions for later use",
+      "c": "Transport calcium ions to the nucleus",
+      "d": "Convert calcium ions into usable energy"
+    },
+    "answer": "a"
+  },
+  {
+    "question": "Q5. What is a unique feature of mitochondrial DNA (mtDNA)?",
+    "options": {
+      "a": "It is housed in the nucleus of the cell.",
+      "b": "It is similar to bacterial DNA.",
+      "c": "It is passed down only from the mother's side.",
+      "d": "It is responsible for producing mitochondria-specific proteins."
+    },
+    "answer": "b"
+  }
+]

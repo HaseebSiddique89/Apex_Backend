@@ -1,0 +1,34 @@
+Q1. What is the name of the organelle depicted in the image?
+a) Nucleus
+b) Mitochondrion
+c) Ribosome
+d) Lysosome
+Answer: b)
+
+Q2. What is the primary function of mitochondria?
+a) Protein synthesis
+b) ATP production
+c) Cell division
+d) Intracellular digestion
+Answer: b)
+
+Q3. Which part of the mitochondrion is responsible for housing the electron transport chain and ATP synthase?
+a) Outer membrane
+b) Intermembrane space
+c) Cristae
+d) Matrix
+Answer: c)
+
+Q4. What is the role of mitochondria in calcium homeostasis?
+a) Regulate calcium ion concentration within the cell
+b) Store excess calcium ions for later use
+c) Transport calcium ions to the nucleus
+d) Convert calcium ions into usable energy
+Answer: a)
+
+Q5. What is a unique feature of mitochondrial DNA (mtDNA)?
+a) It is housed in the nucleus of the cell.
+b) It is similar to bacterial DNA.
+c) It is passed down only from the mother's side.
+d) It is responsible for producing mitochondria-specific proteins.
+Answer: b)

@@ -242,35 +242,45 @@ async def upload_image_complete():
 
         # 4. Start 3D model generation (but don't wait for completion)
         print(f"🔄 Starting 3D model generation for image: {image_id}")
-        model3d_task = None
-        model3d_id = None
+        print(f"🔄 Request ID: {id(request)} - User: {g.current_user['user_id']}")
         
-        try:
-            model3d_task = await async_generate_3d(isometric_path)
-            if model3d_task and model3d_task.get("code") == 200:
-                task_id = model3d_task.get("data", {}).get("task_id")
-                if task_id:
-                    model3d_doc = {
-                        'user_id': g.current_user['user_id'],
-                        'isometric_path': isometric_path,
-                        'uploaded_at': datetime.utcnow(),
-                        'status': 'pending',
-                        'type': '3d_model',
-                        'source_image_id': image_id,
-                        'source_isometric_id': isometric_id,
-                        'task_id': task_id
-                    }
-                    model3d_result = await db.models3d.insert_one(model3d_doc)
-                    model3d_id = str(model3d_result.inserted_id)
-                    successful_processing['model3d'] = True
-                    print(f"✅ 3D model task started: {task_id}")
+        # Check if 3D model already exists for this image
+        existing_model3d = await db.models3d.find_one({'source_image_id': image_id})
+        if existing_model3d:
+            print(f"⚠️ 3D model already exists for image {image_id}, skipping generation")
+            model3d_id = str(existing_model3d['_id'])
+            task_id = existing_model3d.get('task_id')
+            successful_processing['model3d'] = True
+        else:
+            model3d_task = None
+            model3d_id = None
+            
+            try:
+                model3d_task = await async_generate_3d(isometric_path)
+                if model3d_task and model3d_task.get("code") == 200:
+                    task_id = model3d_task.get("data", {}).get("task_id")
+                    if task_id:
+                        model3d_doc = {
+                            'user_id': g.current_user['user_id'],
+                            'isometric_path': isometric_path,
+                            'uploaded_at': datetime.utcnow(),
+                            'status': 'pending',
+                            'type': '3d_model',
+                            'source_image_id': image_id,
+                            'source_isometric_id': isometric_id,
+                            'task_id': task_id
+                        }
+                        model3d_result = await db.models3d.insert_one(model3d_doc)
+                        model3d_id = str(model3d_result.inserted_id)
+                        successful_processing['model3d'] = True
+                        print(f"✅ 3D model task started: {task_id}")
+                    else:
+                        print("❌ 3D model task creation failed - no task_id in response")
                 else:
-                    print("❌ 3D model task creation failed - no task_id in response")
-            else:
-                print("❌ 3D model task creation failed - invalid response")
-                
-        except Exception as e:
-            print(f"❌ 3D model generation error: {e}")
+                    print("❌ 3D model task creation failed - invalid response")
+                    
+            except Exception as e:
+                print(f"❌ 3D model generation error: {e}")
 
         # 5. Return all results except GLB file
         return jsonify({
