@@ -1,9 +1,9 @@
 from motor.motor_asyncio import AsyncIOMotorClient
-from quart import current_app, g
+from quart import g
+from backend.config import Config
 
 async def get_db():
     if 'db' not in g:
-        mongo_uri = current_app.config['MONGODB_URI']
-        client = AsyncIOMotorClient(mongo_uri)
+        client = AsyncIOMotorClient(Config.MONGODB_URI)
         g.db = client.get_default_database()
     return g.db 

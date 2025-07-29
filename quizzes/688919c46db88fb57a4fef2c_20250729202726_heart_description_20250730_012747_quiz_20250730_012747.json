@@ -1,0 +1,52 @@
+[
+  {
+    "question": "Q1. What is the main function of the human heart?",
+    "options": {
+      "a": "To pump blood around the body",
+      "b": "To regulate breathing",
+      "c": "To control muscle movement",
+      "d": "To digest food"
+    },
+    "answer": "a"
+  },
+  {
+    "question": "Q2. How many chambers does the heart have?",
+    "options": {
+      "a": "2",
+      "b": "4",
+      "c": "6",
+      "d": "8"
+    },
+    "answer": "b"
+  },
+  {
+    "question": "Q3. What are the upper chambers of the heart called?",
+    "options": {
+      "a": "Atria",
+      "b": "Ventricles",
+      "c": "Valves",
+      "d": "Arteries"
+    },
+    "answer": "a"
+  },
+  {
+    "question": "Q4. What type of circulation involves blood traveling from the left side of the heart to the lungs?",
+    "options": {
+      "a": "Pulmonary circulation",
+      "b": "Systemic circulation",
+      "c": "Coronary circulation",
+      "d": "Renal circulation"
+    },
+    "answer": "a"
+  },
+  {
+    "question": "Q5. Which part of the heart is known as its natural pacemaker?",
+    "options": {
+      "a": "SA node",
+      "b": "AV node",
+      "c": "Tricuspid valve",
+      "d": "Aorta"
+    },
+    "answer": "a"
+  }
+]

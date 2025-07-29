@@ -1,0 +1,34 @@
+Q1. How many chambers does the human heart have?
+a) 2
+b) 3
+c) 4
+d) 5
+Answer: c
+
+Q2. What are the upper chambers of the heart called?
+a) Aorta
+b) Atrium
+c) Vena cava
+d) Ventricle
+Answer: b
+
+Q3. Which chamber pumps oxygen-rich blood to the body?
+a) Left atrium
+b) Right atrium
+c) Left ventricle
+d) Right ventricle
+Answer: c
+
+Q4. What is the function of the tricuspid valve?
+a) Controls blood flow from the left atrium to the left ventricle
+b) Controls blood flow from the right ventricle to the pulmonary artery
+c) Controls blood flow from the right atrium to the right ventricle
+d) None of the above
+Answer: c
+
+Q5. Which blood vessel carries oxygenated blood from the lungs to the left atrium?
+a) Pulmonary artery
+b) Pulmonary veins
+c) Aorta
+d) Superior vena cava
+Answer: b

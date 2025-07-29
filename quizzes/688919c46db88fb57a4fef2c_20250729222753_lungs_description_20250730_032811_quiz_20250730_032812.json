@@ -1,0 +1,52 @@
+[
+  {
+    "question": "Q1. What is the main function of the lungs?",
+    "options": {
+      "a": "To pump blood",
+      "b": "Gas exchange",
+      "c": "Storing inhaled air",
+      "d": "Producing sound"
+    },
+    "answer": "b"
+  },
+  {
+    "question": "Q2. What is the structure that carries air into and out of the lungs?",
+    "options": {
+      "a": "Alveoli",
+      "b": "Trachea",
+      "c": "Bronchioles",
+      "d": "Pleura"
+    },
+    "answer": "b"
+  },
+  {
+    "question": "Q3. How many lobes does the left lung have?",
+    "options": {
+      "a": "1",
+      "b": "2",
+      "c": "3",
+      "d": "4"
+    },
+    "answer": "b"
+  },
+  {
+    "question": "Q4. What is the role of the alveoli?",
+    "options": {
+      "a": "Producing mucus",
+      "b": "Gas exchange",
+      "c": "Protecting the lungs from pathogens",
+      "d": "Regulating blood flow"
+    },
+    "answer": "b"
+  },
+  {
+    "question": "Q5. What is a risk factor for lung cancer and other respiratory illnesses?",
+    "options": {
+      "a": "Smoking",
+      "b": "Playing outdoor sports",
+      "c": "Consuming sugary drinks",
+      "d": "Reading books"
+    },
+    "answer": "a"
+  }
+]

@@ -11,8 +11,9 @@ from backend.image_processing.utils import (
     async_get_3d_status
 )
 import aiohttp
+import asyncio
 
-UPLOAD_FOLDER = 'uploads'  # You can change this as needed
+UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 image_bp = Blueprint('image', __name__, url_prefix='/image')
@@ -32,19 +33,21 @@ async def download_and_save_file(url, save_dir, filename=None):
 @image_bp.route('/upload', methods=['POST'])
 @login_required
 async def upload_image():
+    """Upload image and automatically generate isometric, 3D model, explanation, and quiz"""
     if 'file' not in (await request.files):
-        return jsonify({'error': 'No file part in the request'}), 400
+        return jsonify({'error': 'No file provided'}), 400
+    
     file = (await request.files)['file']
     if file.filename == '':
-        return jsonify({'error': 'No selected file'}), 400
+        return jsonify({'error': 'No file selected'}), 400
 
-    # Save file
+    # Save uploaded file
     filename = f"{g.current_user['user_id']}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{file.filename}"
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     await file.save(filepath)
-    filepath = filepath.replace("\\", "/")  # Ensure forward slashes
+    filepath = filepath.replace("\\", "/")
 
-    # Store metadata in DB
+    # Store image metadata in DB
     db = await get_db()
     image_doc = {
         'user_id': g.current_user['user_id'],
@@ -53,159 +56,392 @@ async def upload_image():
         'uploaded_at': datetime.utcnow(),
         'status': 'uploaded',
     }
-    result = await db.images.insert_one(image_doc)
+    image_result = await db.images.insert_one(image_doc)
+    image_id = str(image_result.inserted_id)
 
-    # TODO: Trigger processing pipeline (isometric, 3D, etc.)
+    try:
+        # 1. Generate isometric
+        isometric_path = await async_generate_isometric(filepath)
+        isometric_doc = {
+            'user_id': g.current_user['user_id'],
+            'filename': os.path.basename(isometric_path),
+            'filepath': isometric_path,
+            'uploaded_at': datetime.utcnow(),
+            'status': 'generated',
+            'type': 'isometric',
+            'source_image_id': image_id
+        }
+        isometric_result = await db.isometrics.insert_one(isometric_doc)
+        isometric_id = str(isometric_result.inserted_id)
 
-    return jsonify({'message': 'Image uploaded successfully', 'image_id': str(result.inserted_id)}), 201
+        # 2. Generate 3D model
+        model3d_task = await async_generate_3d(isometric_path)
+        model3d_doc = {
+            'user_id': g.current_user['user_id'],
+            'isometric_path': isometric_path,
+            'uploaded_at': datetime.utcnow(),
+            'status': 'pending',
+            'type': '3d_model',
+            'source_image_id': image_id,
+            'source_isometric_id': isometric_id,
+            'task_id': model3d_task.get('task_id') if model3d_task else None
+        }
+        model3d_result = await db.models3d.insert_one(model3d_doc)
+        model3d_id = str(model3d_result.inserted_id)
 
-@image_bp.route('/isometric', methods=['POST'])
+        # 3. Generate explanation
+        explanation_path = await async_generate_explanation(filepath)
+        explanation_doc = {
+            'user_id': g.current_user['user_id'],
+            'filename': os.path.basename(explanation_path),
+            'filepath': explanation_path,
+            'uploaded_at': datetime.utcnow(),
+            'status': 'generated',
+            'type': 'description',
+            'source_image_id': image_id,
+            'source_isometric_id': isometric_id
+        }
+        explanation_result = await db.descriptions.insert_one(explanation_doc)
+        explanation_id = str(explanation_result.inserted_id)
+
+        # 4. Generate quiz
+        quiz_path = await async_generate_quiz(explanation_path, 5)
+        quiz_doc = {
+            'user_id': g.current_user['user_id'],
+            'filename': os.path.basename(quiz_path),
+            'filepath': quiz_path,
+            'uploaded_at': datetime.utcnow(),
+            'status': 'generated',
+            'type': 'quiz',
+            'source_image_id': image_id,
+            'source_description_id': explanation_id
+        }
+        quiz_result = await db.quizzes.insert_one(quiz_doc)
+        quiz_id = str(quiz_result.inserted_id)
+
+        return jsonify({
+            'success': True,
+            'message': 'Image processed successfully',
+            'data': {
+                'image_id': image_id,
+                'image_path': filepath,
+                'isometric_id': isometric_id,
+                'isometric_path': isometric_path,
+                'model3d_id': model3d_id,
+                'model3d_task_id': model3d_task.get('task_id') if model3d_task else None,
+                'model3d_status': 'pending',
+                'model3d_files': None,  # Will be populated when 3D model is ready
+                'explanation_id': explanation_id,
+                'explanation_path': explanation_path,
+                'quiz_id': quiz_id,
+                'quiz_path': quiz_path
+            }
+        }), 201
+
+    except Exception as e:
+        # If any step fails, still return the image info
+        return jsonify({
+            'success': False,
+            'message': f'Image uploaded but processing failed: {str(e)}',
+            'data': {
+                'image_id': image_id,
+                'image_path': filepath
+            }
+        }), 201
+
+@image_bp.route('/upload-complete', methods=['POST'])
 @login_required
-async def isometric_api():
-    data = await request.get_json()
-    image_path = data.get('image_path')
-    source_image_id = data.get('source_image_id')
-    if not image_path or not os.path.exists(image_path):
-        return jsonify({'error': 'Valid image_path required'}), 400
-    result = await async_generate_isometric(image_path)
-    # Store isometric metadata in DB
-    db = await get_db()
-    user_id = g.current_user['user_id']
-    isometric_doc = {
-        'user_id': user_id,
-        'filename': os.path.basename(result),
-        'filepath': result,
-        'uploaded_at': datetime.utcnow(),
-        'status': 'generated',
-        'type': 'isometric',
-    }
-    if source_image_id:
-        isometric_doc['source_image_id'] = source_image_id
-    insert_result = await db.isometrics.insert_one(isometric_doc)
-    return jsonify({'result': result, 'isometric_id': str(insert_result.inserted_id)}), 200
+async def upload_image_complete():
+    """Upload image and process everything except 3D model, return task_id for separate polling"""
+    if 'file' not in (await request.files):
+        return jsonify({'error': 'No file provided'}), 400
+    
+    file = (await request.files)['file']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
 
-@image_bp.route('/3d', methods=['POST'])
-@login_required
-async def model3d_api():
-    data = await request.get_json()
-    isometric_path = data.get('isometric_path')
-    prompt = data.get('prompt')
-    source_isometric_id = data.get('source_isometric_id')
-    if not isometric_path or not os.path.exists(isometric_path):
-        return jsonify({'error': 'Valid isometric_path required'}), 400
-    result = await async_generate_3d(isometric_path, prompt)
-    # Store 3D model task metadata in DB (pending, will update on completion)
+    # Save uploaded file
+    filename = f"{g.current_user['user_id']}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{file.filename}"
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    await file.save(filepath)
+    filepath = filepath.replace("\\", "/")
+
+    # Store image metadata in DB
     db = await get_db()
-    user_id = g.current_user['user_id']
-    model3d_doc = {
-        'user_id': user_id,
-        'isometric_path': isometric_path,
-        'prompt': prompt,
+    image_doc = {
+        'user_id': g.current_user['user_id'],
+        'filename': filename,
+        'filepath': filepath,
         'uploaded_at': datetime.utcnow(),
-        'status': 'pending',
-        'type': '3d_model',
+        'status': 'uploaded',
     }
-    if source_isometric_id:
-        model3d_doc['source_isometric_id'] = source_isometric_id
-    insert_result = await db.models3d.insert_one(model3d_doc)
-    return jsonify({'result': result, 'model3d_id': str(insert_result.inserted_id)}), 200
+    image_result = await db.images.insert_one(image_doc)
+    image_id = str(image_result.inserted_id)
+
+    # Track what was successful
+    successful_processing = {
+        'isometric': False,
+        'explanation': False,
+        'quiz': False,
+        'model3d': False
+    }
+
+    try:
+        # 1. Generate isometric (required for 3D model)
+        print(f"🔄 Generating isometric for image: {image_id}")
+        isometric_path = await async_generate_isometric(filepath)
+        isometric_doc = {
+            'user_id': g.current_user['user_id'],
+            'filename': os.path.basename(isometric_path),
+            'filepath': isometric_path,
+            'uploaded_at': datetime.utcnow(),
+            'status': 'generated',
+            'type': 'isometric',
+            'source_image_id': image_id
+        }
+        isometric_result = await db.isometrics.insert_one(isometric_doc)
+        isometric_id = str(isometric_result.inserted_id)
+        successful_processing['isometric'] = True
+        print(f"✅ Isometric generated: {isometric_path}")
+
+        # 2. Generate explanation
+        print(f"🔄 Generating explanation for image: {image_id}")
+        explanation_path = await async_generate_explanation(filepath)
+        explanation_doc = {
+            'user_id': g.current_user['user_id'],
+            'filename': os.path.basename(explanation_path),
+            'filepath': explanation_path,
+            'uploaded_at': datetime.utcnow(),
+            'status': 'generated',
+            'type': 'description',
+            'source_image_id': image_id,
+            'source_isometric_id': isometric_id
+        }
+        explanation_result = await db.descriptions.insert_one(explanation_doc)
+        explanation_id = str(explanation_result.inserted_id)
+        successful_processing['explanation'] = True
+        print(f"✅ Explanation generated: {explanation_path}")
+
+        # 3. Generate quiz (depends on explanation)
+        print(f"🔄 Generating quiz for image: {image_id}")
+        quiz_path = await async_generate_quiz(explanation_path, 5)
+        quiz_doc = {
+            'user_id': g.current_user['user_id'],
+            'filename': os.path.basename(quiz_path),
+            'filepath': quiz_path,
+            'uploaded_at': datetime.utcnow(),
+            'status': 'generated',
+            'type': 'quiz',
+            'source_image_id': image_id,
+            'source_description_id': explanation_id
+        }
+        quiz_result = await db.quizzes.insert_one(quiz_doc)
+        quiz_id = str(quiz_result.inserted_id)
+        successful_processing['quiz'] = True
+        print(f"✅ Quiz generated: {quiz_path}")
+
+        # 4. Start 3D model generation (but don't wait for completion)
+        print(f"🔄 Starting 3D model generation for image: {image_id}")
+        model3d_task = None
+        model3d_id = None
+        
+        try:
+            model3d_task = await async_generate_3d(isometric_path)
+            if model3d_task and model3d_task.get("code") == 200:
+                task_id = model3d_task.get("data", {}).get("task_id")
+                if task_id:
+                    model3d_doc = {
+                        'user_id': g.current_user['user_id'],
+                        'isometric_path': isometric_path,
+                        'uploaded_at': datetime.utcnow(),
+                        'status': 'pending',
+                        'type': '3d_model',
+                        'source_image_id': image_id,
+                        'source_isometric_id': isometric_id,
+                        'task_id': task_id
+                    }
+                    model3d_result = await db.models3d.insert_one(model3d_doc)
+                    model3d_id = str(model3d_result.inserted_id)
+                    successful_processing['model3d'] = True
+                    print(f"✅ 3D model task started: {task_id}")
+                else:
+                    print("❌ 3D model task creation failed - no task_id in response")
+            else:
+                print("❌ 3D model task creation failed - invalid response")
+                
+        except Exception as e:
+            print(f"❌ 3D model generation error: {e}")
+
+        # 5. Return all results except GLB file
+        return jsonify({
+            'success': True,
+            'message': 'Image processing completed successfully. 3D model is being generated separately.',
+            'data': {
+                'image_id': image_id,
+                'image_path': filepath,
+                'isometric_id': isometric_id,
+                'isometric_path': isometric_path,
+                'model3d_id': model3d_id,
+                'model3d_task_id': task_id,
+                'model3d_status': 'pending',
+                'model3d_files': None,  # Will be available after polling
+                'explanation_id': explanation_id,
+                'explanation_path': explanation_path,
+                'quiz_id': quiz_id,
+                'quiz_path': quiz_path,
+                'processing_time': '30-60 seconds (3D model generated separately)',
+                'processing_status': successful_processing,
+                'next_step': 'Poll /image/3d/status with model3d_task_id to get GLB file'
+            }
+        }), 201
+
+    except Exception as e:
+        print(f"❌ Processing error: {e}")
+        # If any step fails, still return the image info
+        return jsonify({
+            'success': False,
+            'message': f'Image uploaded but processing failed: {str(e)}',
+            'data': {
+                'image_id': image_id,
+                'image_path': filepath,
+                'processing_status': successful_processing
+            }
+        }), 201
 
 @image_bp.route('/3d/status', methods=['POST'])
 @login_required
 async def model3d_status_api():
+    """Check 3D model generation status and download GLB file when ready"""
     data = await request.get_json()
     task_id = data.get('task_id')
+    model3d_id = data.get('model3d_id')
+    
     if not task_id:
         return jsonify({'error': 'task_id is required'}), 400
-    result = await async_get_3d_status(task_id)
-    # If completed, download and save .glb and image, store in DB
-    output = result.get('data', {}).get('output')
-    local_files = {}
-    if result.get('data', {}).get('status') == 'completed' and output:
-        db = await get_db()
-        user_id = g.current_user['user_id']
-        # Download .glb file
-        if 'model_file' in output:
-            glb_url = output['model_file']
-            glb_path = await download_and_save_file(glb_url, '3d_models')
-            model_doc = {
-                'user_id': user_id,
-                'filename': os.path.basename(glb_path),
-                'filepath': glb_path,
-                'uploaded_at': datetime.utcnow(),
-                'status': 'generated',
-                'type': '3d_model',
-                'source_task_id': task_id
+    
+    try:
+        print(f"🔄 Checking 3D model status for task: {task_id}")
+        result = await async_get_3d_status(task_id)
+        
+        if not result:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to get task status'
+            }), 500
+        
+        status = result.get('data', {}).get('status')
+        output = result.get('data', {}).get('output')
+        local_files = {}
+        
+        print(f"📊 3D model status: {status}")
+        
+        if status == 'completed' and output:
+            print(f"✅ 3D model completed! Downloading files...")
+            db = await get_db()
+            user_id = g.current_user['user_id']
+            
+            # Download .glb file
+            if 'model_file' in output:
+                glb_url = output['model_file']
+                print(f"🔄 Downloading GLB file from: {glb_url}")
+                glb_path = await download_and_save_file(glb_url, '3d_models')
+                local_files['glb'] = glb_path
+                print(f"✅ GLB file saved: {glb_path}")
+            
+            # Download no_background_image
+            if 'no_background_image' in output:
+                img_url = output['no_background_image']
+                print(f"🔄 Downloading background image from: {img_url}")
+                img_path = await download_and_save_file(img_url, 'no_background_image')
+                local_files['no_background_image'] = img_path
+                print(f"✅ Background image saved: {img_path}")
+            
+            # Update model3d status using task_id (more reliable than model3d_id)
+            update_result = await db.models3d.update_one(
+                {'task_id': task_id},
+                {'$set': {
+                    'status': 'completed', 
+                    'local_files': local_files,
+                    'completed_at': datetime.utcnow()
+                }}
+            )
+            
+            if update_result.modified_count > 0:
+                print(f"✅ Database updated for task_id: {task_id}")
+                print(f"📁 Files saved: {local_files}")
+            else:
+                print(f"⚠️ Warning: No database record found for task_id: {task_id}")
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'status': status,
+                'local_files': local_files,
+                'model3d_files': local_files if local_files else None,
+                'task_id': task_id,
+                'model3d_id': model3d_id,
+                'message': '3D model completed and files downloaded' if status == 'completed' else f'3D model status: {status}'
             }
-            await db.images.insert_one(model_doc)
-            local_files['glb'] = glb_path
-        # Download no_background_image
-        if 'no_background_image' in output:
-            img_url = output['no_background_image']
-            img_path = await download_and_save_file(img_url, 'no_background_image')
-            no_bg_doc = {
-                'user_id': user_id,
-                'filename': os.path.basename(img_path),
-                'filepath': img_path,
-                'uploaded_at': datetime.utcnow(),
-                'status': 'generated',
-                'type': 'no_background_image',
-                'source_task_id': task_id
-            }
-            await db.images.insert_one(no_bg_doc)
-            local_files['no_background_image'] = img_path
-    return jsonify({'result': result, 'local_files': local_files}), 200
+        }), 200
+        
+    except Exception as e:
+        print(f"❌ Error checking 3D status: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
-@image_bp.route('/explanation', methods=['POST'])
+@image_bp.route('/user/images', methods=['GET'])
 @login_required
-async def explanation_api():
-    data = await request.get_json()
-    image_path = data.get('image_path')
-    source_image_id = data.get('source_image_id')
-    source_isometric_id = data.get('source_isometric_id')
-    if not image_path or not os.path.exists(image_path):
-        return jsonify({'error': 'Valid image_path required'}), 400
-    result = await async_generate_explanation(image_path)
-    # Store description metadata in DB
+async def get_user_images():
+    """Get all images and their processing results for the current user"""
     db = await get_db()
     user_id = g.current_user['user_id']
-    description_doc = {
-        'user_id': user_id,
-        'filename': os.path.basename(result),
-        'filepath': result,
-        'uploaded_at': datetime.utcnow(),
-        'status': 'generated',
-        'type': 'description',
-    }
-    if source_image_id:
-        description_doc['source_image_id'] = source_image_id
-    if source_isometric_id:
-        description_doc['source_isometric_id'] = source_isometric_id
-    insert_result = await db.descriptions.insert_one(description_doc)
-    return jsonify({'result': result, 'description_id': str(insert_result.inserted_id)}), 200
-
-@image_bp.route('/quiz', methods=['POST'])
-@login_required
-async def quiz_api():
-    data = await request.get_json()
-    description_file_path = data.get('description_file_path')
-    num_questions = data.get('num_questions', 3)
-    source_description_id = data.get('source_description_id')
-    if not description_file_path or not os.path.exists(description_file_path):
-        return jsonify({'error': 'Valid description_file_path required'}), 400
-    result = await async_generate_quiz(description_file_path, num_questions)
-    # Store quiz metadata in DB
-    db = await get_db()
-    user_id = g.current_user['user_id']
-    quiz_doc = {
-        'user_id': user_id,
-        'filename': os.path.basename(result),
-        'filepath': result,
-        'uploaded_at': datetime.utcnow(),
-        'status': 'generated',
-        'type': 'quiz',
-    }
-    if source_description_id:
-        quiz_doc['source_description_id'] = source_description_id
-    insert_result = await db.quizzes.insert_one(quiz_doc)
-    return jsonify({'result': result, 'quiz_id': str(insert_result.inserted_id)}), 200 
+    
+    # Get user's images
+    images = await db.images.find({'user_id': user_id}).sort('uploaded_at', -1).to_list(length=50)
+    
+    # Get associated isometrics, explanations, quizzes, and 3D models
+    result = []
+    for image in images:
+        image_id = str(image['_id'])
+        
+        # Get isometric
+        isometric = await db.isometrics.find_one({'source_image_id': image_id})
+        
+        # Get explanation
+        explanation = await db.descriptions.find_one({'source_image_id': image_id})
+        
+        # Get quiz
+        quiz = await db.quizzes.find_one({'source_image_id': image_id})
+        
+        # Get 3D model
+        model3d = await db.models3d.find_one({'source_image_id': image_id})
+        
+        result.append({
+            'image_id': image_id,
+            'image_path': image['filepath'],
+            'uploaded_at': image['uploaded_at'],
+            'isometric': {
+                'id': str(isometric['_id']) if isometric else None,
+                'path': isometric['filepath'] if isometric else None
+            } if isometric else None,
+            'explanation': {
+                'id': str(explanation['_id']) if explanation else None,
+                'path': explanation['filepath'] if explanation else None
+            } if explanation else None,
+            'quiz': {
+                'id': str(quiz['_id']) if quiz else None,
+                'path': quiz['filepath'] if quiz else None
+            } if quiz else None,
+            'model3d': {
+                'id': str(model3d['_id']) if model3d else None,
+                'task_id': model3d.get('task_id') if model3d else None,
+                'status': model3d.get('status') if model3d else None
+            } if model3d else None
+        })
+    
+    return jsonify({
+        'success': True,
+        'data': result
+    }), 200 

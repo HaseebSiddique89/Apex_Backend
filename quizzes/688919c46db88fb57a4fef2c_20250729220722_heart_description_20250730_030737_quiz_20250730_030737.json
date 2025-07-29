@@ -1,0 +1,52 @@
+[
+  {
+    "question": "Q1. How many chambers does the human heart have?",
+    "options": {
+      "a": "2",
+      "b": "3",
+      "c": "4",
+      "d": "5"
+    },
+    "answer": "c"
+  },
+  {
+    "question": "Q2. What are the upper chambers of the heart called?",
+    "options": {
+      "a": "Aorta",
+      "b": "Atrium",
+      "c": "Vena cava",
+      "d": "Ventricle"
+    },
+    "answer": "b"
+  },
+  {
+    "question": "Q3. Which chamber pumps oxygen-rich blood to the body?",
+    "options": {
+      "a": "Left atrium",
+      "b": "Right atrium",
+      "c": "Left ventricle",
+      "d": "Right ventricle"
+    },
+    "answer": "c"
+  },
+  {
+    "question": "Q4. What is the function of the tricuspid valve?",
+    "options": {
+      "a": "Controls blood flow from the left atrium to the left ventricle",
+      "b": "Controls blood flow from the right ventricle to the pulmonary artery",
+      "c": "Controls blood flow from the right atrium to the right ventricle",
+      "d": "None of the above"
+    },
+    "answer": "c"
+  },
+  {
+    "question": "Q5. Which blood vessel carries oxygenated blood from the lungs to the left atrium?",
+    "options": {
+      "a": "Pulmonary artery",
+      "b": "Pulmonary veins",
+      "c": "Aorta",
+      "d": "Superior vena cava"
+    },
+    "answer": "b"
+  }
+]

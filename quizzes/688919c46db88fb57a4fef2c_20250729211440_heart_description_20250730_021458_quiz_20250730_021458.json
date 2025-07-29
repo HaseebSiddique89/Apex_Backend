@@ -1,0 +1,52 @@
+[
+  {
+    "question": "Q1. What is the name of the heart's natural pacemaker?",
+    "options": {
+      "a": "Atrioventricular node",
+      "b": "Sinoatrial node",
+      "c": "Bundle of His",
+      "d": "Purkinje fibers"
+    },
+    "answer": "b"
+  },
+  {
+    "question": "Q2. Which chamber of the heart receives deoxygenated blood from the body?",
+    "options": {
+      "a": "Left atrium",
+      "b": "Right atrium",
+      "c": "Left ventricle",
+      "d": "Right ventricle"
+    },
+    "answer": "b"
+  },
+  {
+    "question": "Q3. What is the function of the heart's electrical conduction system?",
+    "options": {
+      "a": "To pump blood",
+      "b": "To coordinate contractions of the heart chambers",
+      "c": "To transport hormones",
+      "d": "To regulate blood pressure"
+    },
+    "answer": "b"
+  },
+  {
+    "question": "Q4. What happens when the coronary arteries, which supply blood to the heart muscle, become blocked?",
+    "options": {
+      "a": "Heart attack",
+      "b": "Arrhythmia",
+      "c": "Heart failure",
+      "d": "Coronary artery disease"
+    },
+    "answer": "a"
+  },
+  {
+    "question": "Q5. How many chambers does the heart have?",
+    "options": {
+      "a": "Two",
+      "b": "Three",
+      "c": "Four",
+      "d": "Five"
+    },
+    "answer": "c"
+  }
+]
